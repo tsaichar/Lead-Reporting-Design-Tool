@@ -7,8 +7,30 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+<!-- ============================================================
+     FIREBASE SETUP — replace these 3 values with your own:
+
+     1. Go to https://console.firebase.google.com
+     2. Click "Add project" → name it "lead-funnel" → Create
+     3. Click the </> Web icon to register your app
+     4. Copy the firebaseConfig values into the 3 lines below
+     5. In Firebase console: Build → Realtime Database → Create database
+        → Start in TEST MODE (you can add auth rules later)
+     6. Copy the database URL into DB_URL below
+
+     That's it. Everyone who opens the file shares live data.
+============================================================ -->
+<script>
+  var FB_API_KEY    = "AIzaSyA6jYrvOHSSdeBL2IbDPM1jSCUmdC2U7ok";
+  var FB_PROJECT_ID = "lead-reporting-design-tool";
+  var FB_APP_ID     = "1:339937574600:web:64d385893d192ceaa4effd";
+  var DB_URL        = "https://lead-reporting-design-tool-default-rtdb.firebaseio.com";
+  // Example DB_URL: "https://lead-funnel-abc12-default-rtdb.firebaseio.com"
+</script>
+
 <style>
-:root {
+:root{
   --bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;
   --border:rgba(0,0,0,.1);--border-s:rgba(0,0,0,.18);
   --text:#1a1a18;--text2:#5a5a54;--text3:#9a9990;
@@ -20,6 +42,7 @@
   --red-50:#FCEBEB;--red-200:#F09595;--red-400:#E24B4A;--red-600:#A32D2D;--red-800:#791F1F;
   --warn-bg:#FAEEDA;--warn-t:#633806;--warn-b:#EF9F27;
   --dan-bg:#FCEBEB;--dan-t:#791F1F;--dan-b:#E24B4A;
+  --green:#1D9E75;
 }
 @media(prefers-color-scheme:dark){:root{
   --bg:#131312;--surface:#1c1c1a;--surface2:#242422;
@@ -35,6 +58,8 @@
 }}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:13px;min-height:100vh;line-height:1.5}
+
+/* ---- header ---- */
 header{background:var(--surface);border-bottom:.5px solid var(--border);padding:0 1.5rem;height:52px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
 .h-title{font-size:14px;font-weight:600;letter-spacing:-.01em}
 .h-sub{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
@@ -43,11 +68,32 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 .hbtn:hover{background:var(--surface2);color:var(--text)}
 .hbtn.primary{background:var(--mql-600);color:#fff;border-color:var(--mql-600)}
 .hbtn.primary:hover{background:var(--mql-800);border-color:var(--mql-800)}
+
+/* sync indicator */
+.sync-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:background .3s}
+.sync-dot.live{background:var(--green)}
+.sync-dot.saving{background:#EF9F27}
+.sync-dot.offline{background:var(--red-400)}
+.sync-label{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+
+/* ---- setup banner ---- */
+.setup-banner{background:var(--warn-bg);border:.5px solid var(--warn-b);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1rem;display:flex;gap:12px;align-items:flex-start}
+.setup-banner i{font-size:18px;color:var(--warn-t);flex-shrink:0;margin-top:1px}
+.setup-banner-body{flex:1}
+.setup-banner-title{font-size:13px;font-weight:600;color:var(--warn-t);margin-bottom:4px}
+.setup-banner-text{font-size:12px;color:var(--warn-t);line-height:1.6}
+.setup-banner code{font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(0,0,0,.08);padding:1px 5px;border-radius:4px}
+.setup-steps{margin-top:8px;padding-left:1rem}
+.setup-steps li{font-size:12px;color:var(--warn-t);line-height:1.8}
+
+/* ---- main layout ---- */
 main{padding:1.5rem;max-width:1200px;margin:0 auto}
 .path-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem 1.25rem .85rem;margin-bottom:1rem}
 .card-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:.75rem}
 .path-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .path-bar{display:flex;align-items:stretch;min-width:max-content}
+
+/* ---- chevrons ---- */
 .chevron{position:relative;display:flex;align-items:center;justify-content:center;height:var(--chev-h);min-width:118px;padding:0 22px 0 28px;cursor:pointer;user-select:none;font-size:11px;font-weight:500;white-space:nowrap;transition:opacity .12s,transform .1s}
 .chevron:first-child{padding-left:14px;border-radius:6px 0 0 6px}
 .chevron:last-child{border-radius:0 6px 6px 0}
@@ -80,6 +126,8 @@ main{padding:1.5rem;max-width:1200px;margin:0 auto}
 .legend{display:flex;gap:1.25rem;margin-top:.75rem;flex-wrap:wrap}
 .leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)}
 .leg-sw{width:22px;height:8px;border-radius:2px}
+
+/* ---- detail panel ---- */
 .detail-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;min-height:120px}
 .detail-empty{padding:2.5rem 1.5rem;text-align:center;color:var(--text3)}
 .detail-empty i{font-size:26px;display:block;margin-bottom:.5rem;opacity:.4}
@@ -144,12 +192,31 @@ textarea{width:100%;padding:7px 9px;resize:vertical;min-height:70px;line-height:
     <div class="h-sub">status reference &amp; workflow tool</div>
   </div>
   <div class="h-actions">
+    <span class="sync-dot offline" id="sync-dot"></span>
+    <span class="sync-label" id="sync-label">not connected</span>
     <button class="hbtn" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
-    <button class="hbtn primary" onclick="shareFile()"><i class="ti ti-share"></i> Share file</button>
   </div>
 </header>
 
 <main>
+  <div id="setup-banner" class="setup-banner" style="display:none">
+    <i class="ti ti-alert-circle"></i>
+    <div class="setup-banner-body">
+      <div class="setup-banner-title">Firebase not configured — data is local only</div>
+      <div class="setup-banner-text">
+        To enable real-time shared editing, open this file in a text editor and replace the four placeholder values near the top with your Firebase project credentials.
+        <ol class="setup-steps">
+          <li>Go to <strong>console.firebase.google.com</strong> and create a free project</li>
+          <li>Click the <strong>&lt;/&gt;</strong> Web icon &rarr; register your app &rarr; copy the config values</li>
+          <li>Go to <strong>Build &rarr; Realtime Database &rarr; Create database &rarr; Start in test mode</strong></li>
+          <li>Paste <code>apiKey</code>, <code>projectId</code>, <code>appId</code>, and <code>databaseURL</code> into the file</li>
+          <li>Host the file on GitHub Pages or Netlify Drop — everyone who opens the URL shares live data</li>
+        </ol>
+        Until then the tool works fully for you alone, saving to your browser.
+      </div>
+    </div>
+  </div>
+
   <div class="path-card">
     <div class="card-label">Lead status path — click any stage to view details</div>
     <div class="path-scroll">
@@ -163,6 +230,7 @@ textarea{width:100%;padding:7px 9px;resize:vertical;min-height:70px;line-height:
       <span class="leg"><span class="leg-sw" style="background:#FCEBEB"></span>Disqualified</span>
     </div>
   </div>
+
   <div class="detail-card" id="detail-card">
     <div class="detail-empty">
       <i class="ti ti-hand-finger"></i>
@@ -173,7 +241,14 @@ textarea{width:100%;padding:7px 9px;resize:vertical;min-height:70px;line-height:
 
 <div class="toast" id="toast"></div>
 
+<!-- Firebase SDKs (compat version — works without a bundler) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <script>
+/* ================================================================
+   DATA DEFAULTS
+================================================================ */
 var AUTOCAT=[
   {value:'email',    label:'Email',        icon:'ti-mail'},
   {value:'task',     label:'Task',         icon:'ti-check'},
@@ -185,20 +260,140 @@ var AUTOCAT=[
 function catIcon(v){for(var i=0;i<AUTOCAT.length;i++){if(AUTOCAT[i].value===v)return AUTOCAT[i].icon;}return 'ti-bolt';}
 function catLabel(v){for(var i=0;i<AUTOCAT.length;i++){if(AUTOCAT[i].value===v)return AUTOCAT[i].label;}return v;}
 
-var STATUSES=[
-  {id:'mql-s', cc:'c-mql-s', label:'MQL \u2014 suspect',       short:'Suspect',        stage:'MQL',  sp:'sp-mql',  dot:'#7F77DD', def:'Lead received but not yet reviewed by SDR for ICP confirmation.',                                                 trigger:'',                        nurture:false,permanent:false,automations:[],notes:''},
-  {id:'mql-w', cc:'c-mql-w', label:'MQL \u2014 working',       short:'Working',        stage:'MQL',  sp:'sp-mql',  dot:'#7F77DD', def:'SDR reviewed, confirmed ICP, actively reaching out to establish contact.',                                         trigger:'',                        nurture:false,permanent:false,automations:[],notes:''},
-  {id:'mql-nr',cc:'c-mql-nr',label:'MQL \u2014 no response',   short:'No response',    stage:'MQL',  sp:'sp-mql',  dot:'#534AB7', def:'SDR reached out multiple times with no connection made. Lead went cold before any conversation.',                   trigger:'',                        nurture:true, permanent:false,automations:[],notes:''},
-  {id:'sal-ms',cc:'c-sal-ms',label:'SAL \u2014 mtg scheduled', short:'Mtg scheduled',  stage:'SAL',  sp:'sp-sal',  dot:'#1D9E75', def:'SDR connected, completed BANT qualification, and scheduled a meeting as the next step.',                           trigger:'',                        nurture:false,permanent:false,automations:[],notes:''},
-  {id:'sal-nr',cc:'c-sal-nr',label:'SAL \u2014 no response',   short:'No response',    stage:'SAL',  sp:'sp-sal',  dot:'#1D9E75', def:'Meeting was scheduled but lead ghosted before or after. Engagement stalled post-connection.',                       trigger:'',                        nurture:true, permanent:false,automations:[],notes:''},
-  {id:'sal-no',cc:'c-sal-no',label:'SAL \u2014 no opportunity',short:'No opportunity', stage:'SAL',  sp:'sp-sal',  dot:'#0F6E56', def:'AE met with the lead and confirmed no opportunity at this time. Not permanent \u2014 eligible for re-entry.',       trigger:'',                        nurture:false,permanent:false,automations:[],notes:''},
-  {id:'sql-ao',cc:'c-sql',   label:'SQL \u2014 added to opp',  short:'Added to opp',   stage:'SQL',  sp:'sp-sql',  dot:'#378ADD', def:'AE confirmed an opportunity exists. Conversation is progressing toward a deal.',                                    trigger:'',                        nurture:false,permanent:false,automations:[],notes:''},
-  {id:'ex-nal',cc:'c-nal',   label:'Not a lead',               short:'Not a lead',     stage:'Exit', sp:'sp-exit', dot:'#888780', def:'Reviewed and confirmed outside the sales funnel \u2014 job seeker, support request, partner, or customer of a customer.',trigger:'Not a lead reason field',nurture:false,permanent:false,automations:[],notes:''},
-  {id:'ex-dq', cc:'c-dq',    label:'Disqualified',             short:'Disqualified',   stage:'Exit', sp:'sp-exitr',dot:'#E24B4A', def:'SDR or AE confirmed ICP but determined there is no sales opportunity now or in the future. Permanent exit.',        trigger:'Disq. reason field',      nurture:false,permanent:true, automations:[],notes:''}
+var DEFAULTS=[
+  {id:'mql-s', cc:'c-mql-s', label:'MQL \u2014 suspect',        short:'Suspect',        stage:'MQL',  sp:'sp-mql',   dot:'#7F77DD', def:'Lead received but not yet reviewed by SDR for ICP confirmation.',                                                  trigger:'',                         nurture:false,permanent:false},
+  {id:'mql-w', cc:'c-mql-w', label:'MQL \u2014 working',        short:'Working',        stage:'MQL',  sp:'sp-mql',   dot:'#7F77DD', def:'SDR reviewed, confirmed ICP, actively reaching out to establish contact.',                                          trigger:'',                         nurture:false,permanent:false},
+  {id:'mql-nr',cc:'c-mql-nr',label:'MQL \u2014 no response',    short:'No response',    stage:'MQL',  sp:'sp-mql',   dot:'#534AB7', def:'SDR reached out multiple times with no connection made. Lead went cold before any conversation.',                    trigger:'',                         nurture:true, permanent:false},
+  {id:'sal-ms',cc:'c-sal-ms',label:'SAL \u2014 mtg scheduled',  short:'Mtg scheduled',  stage:'SAL',  sp:'sp-sal',   dot:'#1D9E75', def:'SDR connected, completed BANT qualification, and scheduled a meeting as the next step.',                            trigger:'',                         nurture:false,permanent:false},
+  {id:'sal-nr',cc:'c-sal-nr',label:'SAL \u2014 no response',    short:'No response',    stage:'SAL',  sp:'sp-sal',   dot:'#1D9E75', def:'Meeting was scheduled but lead ghosted before or after. Engagement stalled post-connection.',                        trigger:'',                         nurture:true, permanent:false},
+  {id:'sal-no',cc:'c-sal-no',label:'SAL \u2014 no opportunity', short:'No opportunity', stage:'SAL',  sp:'sp-sal',   dot:'#0F6E56', def:'AE met with the lead and confirmed no opportunity at this time. Not permanent \u2014 eligible for re-entry.',        trigger:'',                         nurture:false,permanent:false},
+  {id:'sql-ao',cc:'c-sql',   label:'SQL \u2014 added to opp',   short:'Added to opp',   stage:'SQL',  sp:'sp-sql',   dot:'#378ADD', def:'AE confirmed an opportunity exists. Conversation is progressing toward a deal.',                                     trigger:'',                         nurture:false,permanent:false},
+  {id:'ex-nal',cc:'c-nal',   label:'Not a lead',                short:'Not a lead',     stage:'Exit', sp:'sp-exit',  dot:'#888780', def:'Reviewed and confirmed outside the sales funnel \u2014 job seeker, support request, partner, or customer of a customer.', trigger:'Not a lead reason field',  nurture:false,permanent:false},
+  {id:'ex-dq', cc:'c-dq',    label:'Disqualified',              short:'Disqualified',   stage:'Exit', sp:'sp-exitr', dot:'#E24B4A', def:'SDR or AE confirmed ICP but determined there is no sales opportunity now or in the future. Permanent exit.',         trigger:'Disq. reason field',       nurture:false,permanent:true}
 ];
 
-var openId=null;
+// Working copy — automations + notes added at runtime
+var STATUSES = DEFAULTS.map(function(d){
+  return {id:d.id,cc:d.cc,label:d.label,short:d.short,stage:d.stage,sp:d.sp,dot:d.dot,
+          def:d.def,trigger:d.trigger,nurture:d.nurture,permanent:d.permanent,
+          automations:[],notes:''};
+});
 
+var openId = null;
+var fbDb   = null;
+var fbRef  = null;
+var notesDebounce = {};
+
+/* ================================================================
+   FIREBASE INIT
+================================================================ */
+function initFirebase(){
+  var configured = FB_API_KEY && FB_API_KEY !== 'AIzaSyA6jYrvOHSSdeBL2IbDPM1jSCUmdC2U7ok';
+  if(!configured){
+    document.getElementById('setup-banner').style.display='flex';
+    setSyncStatus('offline','not connected');
+    loadLocalStorage();
+    buildBar();
+    return;
+  }
+  try{
+    var app = firebase.initializeApp({
+      apiKey:    FB_API_KEY,
+      projectId: FB_PROJECT_ID,
+      appId:     FB_APP_ID,
+      databaseURL: DB_URL
+    });
+    fbDb  = firebase.database(app);
+    fbRef = fbDb.ref('leadFunnel');
+
+    setSyncStatus('saving','connecting\u2026');
+
+    // Listen for all data — this fires on connect and on every remote change
+    fbRef.on('value', function(snap){
+      var data = snap.val();
+      if(data){
+        // Merge remote data into STATUSES
+        for(var id in data){
+          var s = findStatus(id);
+          if(s && data[id]){
+            if(data[id].def)         s.def         = data[id].def;
+            if(data[id].automations) s.automations = data[id].automations;
+            if(data[id].notes !== undefined) s.notes = data[id].notes;
+          }
+        }
+      } else {
+        // First run — push defaults to Firebase
+        pushAllToFirebase();
+      }
+      setSyncStatus('live','live \u2014 all changes shared');
+      if(openId) renderDetail(openId);
+      buildBar();
+    });
+
+    fbDb.ref('.info/connected').on('value', function(snap){
+      if(!snap.val()){
+        setSyncStatus('offline','reconnecting\u2026');
+      }
+    });
+
+  } catch(e){
+    console.error('Firebase init error:', e);
+    document.getElementById('setup-banner').style.display='flex';
+    setSyncStatus('offline','firebase error');
+    loadLocalStorage();
+    buildBar();
+  }
+}
+
+function pushAllToFirebase(){
+  if(!fbRef) return;
+  var update={};
+  for(var i=0;i<STATUSES.length;i++){
+    var s=STATUSES[i];
+    update[s.id]={def:s.def,automations:s.automations,notes:s.notes};
+  }
+  fbRef.set(update);
+}
+
+function saveStatus(s){
+  // Always save to localStorage as fallback
+  try{
+    var d=STATUSES.map(function(x){return {id:x.id,def:x.def,automations:x.automations,notes:x.notes};});
+    localStorage.setItem('lf4',JSON.stringify(d));
+  }catch(e){}
+  // Push to Firebase if connected
+  if(fbRef){
+    setSyncStatus('saving','saving\u2026');
+    fbRef.child(s.id).set({def:s.def,automations:s.automations,notes:s.notes}, function(err){
+      if(!err) setSyncStatus('live','live \u2014 all changes shared');
+      else setSyncStatus('offline','save failed');
+    });
+  }
+}
+
+function loadLocalStorage(){
+  try{
+    var raw=localStorage.getItem('lf4');
+    if(raw){
+      var parsed=JSON.parse(raw);
+      for(var i=0;i<parsed.length;i++){
+        var p=parsed[i],s=findStatus(p.id);
+        if(s){s.def=p.def||s.def;s.automations=p.automations||[];s.notes=p.notes||'';}
+      }
+    }
+  }catch(e){}
+}
+
+function setSyncStatus(state, label){
+  var dot=document.getElementById('sync-dot');
+  var lbl=document.getElementById('sync-label');
+  dot.className='sync-dot '+state;
+  lbl.textContent=label;
+}
+
+/* ================================================================
+   HELPERS
+================================================================ */
 function findStatus(id){for(var i=0;i<STATUSES.length;i++){if(STATUSES[i].id===id)return STATUSES[i];}return null;}
 
 function esc(str){
@@ -213,22 +408,9 @@ function toast(msg){
   setTimeout(function(){t.classList.remove('show');},2200);
 }
 
-function save(){
-  try{
-    var d=STATUSES.map(function(s){return {id:s.id,def:s.def,automations:s.automations,notes:s.notes};});
-    localStorage.setItem('lf3',JSON.stringify(d));
-  }catch(e){}
-}
-
-function load(){
-  try{
-    var baked=window.__BAKED__;
-    if(baked){for(var i=0;i<baked.length;i++){var p=baked[i],s=findStatus(p.id);if(s){s.def=p.def||s.def;s.automations=p.automations||[];s.notes=p.notes||'';}}}
-    var raw=localStorage.getItem('lf3');
-    if(raw){var parsed=JSON.parse(raw);for(var i=0;i<parsed.length;i++){var p=parsed[i],s=findStatus(p.id);if(s){s.def=p.def||s.def;s.automations=p.automations||[];s.notes=p.notes||'';}}}
-  }catch(e){}
-}
-
+/* ================================================================
+   RENDER
+================================================================ */
 function buildBar(){
   var html='';
   for(var i=0;i<STATUSES.length;i++){
@@ -243,7 +425,9 @@ function renderAutoList(s){
   var html='';
   for(var i=0;i<s.automations.length;i++){
     var a=s.automations[i];
-    html+='<div class="auto-item"><i class="ti '+catIcon(a.type)+' ci"></i><span class="at"><strong>'+catLabel(a.type)+':</strong> '+esc(a.text)+'</span><span class="a-del" onclick="delAuto(\''+s.id+'\','+i+')" title="Remove"><i class="ti ti-x"></i></span></div>';
+    html+='<div class="auto-item"><i class="ti '+catIcon(a.type)+' ci"></i>'
+        +'<span class="at"><strong>'+catLabel(a.type)+':</strong> '+esc(a.text)+'</span>'
+        +'<span class="a-del" onclick="delAuto(\''+s.id+'\','+i+')" title="Remove"><i class="ti ti-x"></i></span></div>';
   }
   return html;
 }
@@ -251,10 +435,11 @@ function renderAutoList(s){
 function renderDetail(sid){
   var s=findStatus(sid);if(!s)return;
   var badges='';
-  if(s.trigger)badges+='<span class="badge b-warn"><i class="ti ti-alert-triangle"></i>Triggers: '+esc(s.trigger)+'</span>';
-  if(s.nurture)badges+='<span class="badge b-nur"><i class="ti ti-refresh"></i>Nurture eligible</span>';
-  if(s.permanent)badges+='<span class="badge b-perm"><i class="ti ti-lock"></i>Permanent exit</span>';
-  var acOpts='';for(var i=0;i<AUTOCAT.length;i++){acOpts+='<option value="'+AUTOCAT[i].value+'">'+AUTOCAT[i].label+'</option>';}
+  if(s.trigger)   badges+='<span class="badge b-warn"><i class="ti ti-alert-triangle"></i>Triggers: '+esc(s.trigger)+'</span>';
+  if(s.nurture)   badges+='<span class="badge b-nur"><i class="ti ti-refresh"></i>Nurture eligible</span>';
+  if(s.permanent) badges+='<span class="badge b-perm"><i class="ti ti-lock"></i>Permanent exit</span>';
+  var acOpts='';
+  for(var i=0;i<AUTOCAT.length;i++){acOpts+='<option value="'+AUTOCAT[i].value+'">'+AUTOCAT[i].label+'</option>';}
   var navHTML='';
   for(var i=0;i<STATUSES.length;i++){
     var x=STATUSES[i];
@@ -270,15 +455,19 @@ function renderDetail(sid){
     +'<div id="dv-'+sid+'"><div class="d-def">'+esc(s.def)+'</div>'
     +'<button class="ebtn" onclick="editDef(\''+sid+'\')"><i class="ti ti-edit"></i> Edit definition</button></div>'
     +'<div id="de-'+sid+'" style="display:none"><textarea id="dta-'+sid+'">'+esc(s.def)+'</textarea>'
-    +'<div class="def-btn-row"><button class="sbtn" onclick="saveDef(\''+sid+'\')"><i class="ti ti-check"></i> Save</button>'
-    +'<button class="cbtn" onclick="cancelDef(\''+sid+'\')">Cancel</button></div></div>'
+    +'<div class="def-btn-row">'
+    +'<button class="sbtn" onclick="saveDef(\''+sid+'\')"><i class="ti ti-check"></i> Save</button>'
+    +'<button class="cbtn" onclick="cancelDef(\''+sid+'\')">Cancel</button>'
+    +'</div></div>'
     +(badges?'<div class="badge-row" style="margin-top:.75rem">'+badges+'</div>':'')
     +'<div class="divider"></div>'
     +'<div class="sect-lbl">Automations &amp; workflow</div>'
     +'<div id="al-'+sid+'">'+renderAutoList(s)+'</div>'
-    +'<div class="add-row"><select id="ac-'+sid+'">'+acOpts+'</select>'
+    +'<div class="add-row">'
+    +'<select id="ac-'+sid+'">'+acOpts+'</select>'
     +'<input type="text" id="at-'+sid+'" placeholder="Describe the step or automation..." onkeydown="if(event.key===\'Enter\')addAuto(\''+sid+'\')">'
-    +'<button class="abtn" onclick="addAuto(\''+sid+'\')"><i class="ti ti-plus"></i> Add</button></div>'
+    +'<button class="abtn" onclick="addAuto(\''+sid+'\')"><i class="ti ti-plus"></i> Add</button>'
+    +'</div>'
     +'</div>'
     +'<div class="d-side">'
     +'<div class="sect-lbl" style="margin-bottom:.6rem">Workflow notes</div>'
@@ -300,13 +489,69 @@ function toggle(id){
   }
 }
 
-function editDef(id){document.getElementById('dv-'+id).style.display='none';document.getElementById('de-'+id).style.display='block';document.getElementById('dta-'+id).focus();}
-function cancelDef(id){document.getElementById('dv-'+id).style.display='block';document.getElementById('de-'+id).style.display='none';}
-function saveDef(id){var val=document.getElementById('dta-'+id).value.trim();if(!val)return;var s=findStatus(id);if(s)s.def=val;save();renderDetail(id);toast('Definition saved');}
-function saveNotes(id,val){var s=findStatus(id);if(s){s.notes=val;save();}}
-function addAuto(id){var cat=document.getElementById('ac-'+id).value;var txt=document.getElementById('at-'+id).value.trim();if(!txt)return;var s=findStatus(id);if(s)s.automations.push({type:cat,text:txt});save();document.getElementById('al-'+id).innerHTML=renderAutoList(s);document.getElementById('at-'+id).value='';toast('Automation added');}
-function delAuto(id,idx){var s=findStatus(id);if(s)s.automations.splice(idx,1);save();document.getElementById('al-'+id).innerHTML=renderAutoList(s);}
+/* ================================================================
+   EDIT ACTIONS
+================================================================ */
+function editDef(id){
+  document.getElementById('dv-'+id).style.display='none';
+  document.getElementById('de-'+id).style.display='block';
+  document.getElementById('dta-'+id).focus();
+}
+function cancelDef(id){
+  document.getElementById('dv-'+id).style.display='block';
+  document.getElementById('de-'+id).style.display='none';
+}
+function saveDef(id){
+  var val=document.getElementById('dta-'+id).value.trim();
+  if(!val)return;
+  var s=findStatus(id);
+  if(s) s.def=val;
+  saveStatus(s);
+  renderDetail(id);
+  toast('Definition saved');
+}
+function saveNotes(id,val){
+  var s=findStatus(id);
+  if(!s)return;
+  s.notes=val;
+  // Debounce notes saves — don't hit Firebase on every keystroke
+  if(notesDebounce[id]) clearTimeout(notesDebounce[id]);
+  notesDebounce[id]=setTimeout(function(){ saveStatus(s); }, 800);
+}
+function addAuto(id){
+  var cat=document.getElementById('ac-'+id).value;
+  var txt=document.getElementById('at-'+id).value.trim();
+  if(!txt)return;
+  var s=findStatus(id);
+  if(s) s.automations.push({type:cat,text:txt});
+  saveStatus(s);
+  document.getElementById('al-'+id).innerHTML=renderAutoList(s);
+  document.getElementById('at-'+id).value='';
+  // Refresh nav counters
+  var navItems=document.querySelectorAll('.nav-item');
+  for(var i=0;i<navItems.length;i++){
+    var ni=navItems[i];
+    var nid=STATUSES[i]?STATUSES[i].id:null;
+    if(nid){
+      var ns=findStatus(nid);
+      var existing=ni.querySelector('.counter');
+      if(ns&&ns.automations.length>0){
+        if(existing) existing.textContent=ns.automations.length;
+      }
+    }
+  }
+  toast('Automation added');
+}
+function delAuto(id,idx){
+  var s=findStatus(id);
+  if(s) s.automations.splice(idx,1);
+  saveStatus(s);
+  document.getElementById('al-'+id).innerHTML=renderAutoList(s);
+}
 
+/* ================================================================
+   EXPORT
+================================================================ */
 function exportCSV(){
   var rows=[['Stage','Status','Definition','Triggers','Nurture eligible','Permanent exit','Automations','Notes']];
   for(var i=0;i<STATUSES.length;i++){
@@ -327,23 +572,10 @@ function exportCSV(){
   toast('CSV exported');
 }
 
-function shareFile(){
-  var data=STATUSES.map(function(s){return {id:s.id,def:s.def,automations:s.automations,notes:s.notes};});
-  var baked=JSON.stringify(data);
-  var so='<'+'script>';
-  var sc='<'+'/script>';
-  var block=so+'window.__BAKED__='+baked+';'+sc;
-  var src='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
-  var out=src.replace('</head>',block+'</head>');
-  var a=document.createElement('a');
-  a.href='data:text/html;charset=utf-8,'+encodeURIComponent(out);
-  a.download='lead-funnel-shared.html';
-  a.click();
-  toast('File downloaded \u2014 send lead-funnel-shared.html to share');
-}
-
-load();
-buildBar();
+/* ================================================================
+   BOOT
+================================================================ */
+initFirebase();
 </script>
 </body>
 </html>
